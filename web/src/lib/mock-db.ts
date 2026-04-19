@@ -9,6 +9,7 @@ import type {
   YarnType,
 } from "@/types";
 import { hydrateFabricRecipesFromCatalog } from "@/lib/seed/load-catalog";
+import { hydrateExcelSeedTechnicalRecords } from "@/lib/seed/load-technical-seed";
 
 const now = () => new Date();
 
@@ -637,7 +638,10 @@ function cloneStore(): Store {
     fabricTypes: demoFabricTypes.map((x) => ({ ...x })),
     fabricRecipes: cloneSeedFabricRecipes(),
     machines: demoMachines.map((x) => ({ ...x })),
-    technicalRecords: buildDemoTechnicalRecords().map((x) => ({ ...x })),
+    technicalRecords: [
+      ...hydrateExcelSeedTechnicalRecords().map((x) => ({ ...x })),
+      ...buildDemoTechnicalRecords().map((x) => ({ ...x })),
+    ],
     yarnTypes: demoYarnTypes.map((x) => ({ ...x })),
     settings: { ...demoSettings, scoringWeights: { ...demoSettings.scoringWeights } },
     importJobs: demoImportJobs.map((x) => ({

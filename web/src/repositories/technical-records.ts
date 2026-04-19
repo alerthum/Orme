@@ -1,6 +1,7 @@
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 import { getMockStore } from "@/lib/mock-db";
+import { hydrateExcelSeedTechnicalRecords } from "@/lib/seed/load-technical-seed";
 import type { TechnicalRecord } from "@/types";
 import {
   addDoc,
@@ -36,7 +37,14 @@ export async function listTechnicalRecords(
     ? query(base, where("fabricTypeId", "==", fabricTypeId))
     : query(base);
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as TechnicalRecord[];
+  let rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as TechnicalRecord[];
+  if (rows.length === 0) {
+    rows = hydrateExcelSeedTechnicalRecords().map((x) => ({ ...x }));
+  }
+  if (fabricTypeId) {
+    rows = rows.filter((r) => r.fabricTypeId === fabricTypeId);
+  }
+  return rows;
 }
 
 export async function createTechnicalRecord(

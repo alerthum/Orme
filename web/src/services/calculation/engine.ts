@@ -268,9 +268,10 @@ export function calculateAlternatives(params: CalculateParams): CalculationAlter
   let pool: TechnicalRecord[];
   if (input.fabricRecipeId) {
     const byRecipe = active.filter((r) => r.fabricRecipeId === input.fabricRecipeId);
-    pool = byRecipe.length
-      ? byRecipe
-      : active.filter((r) => r.fabricTypeId === input.fabricTypeId);
+    const byFabric = active.filter((r) => r.fabricTypeId === input.fabricTypeId);
+    if (byRecipe.length) pool = byRecipe;
+    else if (byFabric.length) pool = byFabric;
+    else pool = active;
   } else {
     const byFabric = active.filter((r) => r.fabricTypeId === input.fabricTypeId);
     pool = byFabric.length ? byFabric : active;

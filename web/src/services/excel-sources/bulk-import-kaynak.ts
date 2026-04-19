@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as XLSX from "xlsx";
-import type { FabricRecipe, FabricType, Machine } from "@/types";
+import type { FabricRecipe, FabricType, Machine, TechnicalRecord } from "@/types";
 import { replaceTechnicalRecordsFromSource } from "@/repositories/technical-records";
 import {
   enrichEnlerDraftsWithGramajMedian,
@@ -75,6 +75,144 @@ function defaultMachineBase(machines: Machine[], fabric: FabricType) {
     pusFein: Math.round((m.pusFeinMin + m.pusFeinMax) / 2),
     needleCount: Math.round((m.needleMin + m.needleMax) / 2),
   };
+}
+
+export type KaynakTechnicalDraft = Omit<
+  TechnicalRecord,
+  "id" | "createdAt" | "updatedAt"
+>;
+
+/**
+ * Excel kaynak klasöründen teknik satırları belleğe toplar (JSON seed / analiz için).
+ * Sunucu mock veya Firestore ile yazmaz.
+ */
+export function collectTechnicalRowsFromKaynakDir(
+  dirAbsolute: string,
+  ctx: {
+    fabricTypes: FabricType[];
+    recipes: FabricRecipe[];
+    machines: Machine[];
+  }
+): {
+  rows: KaynakTechnicalDraft[];
+  errors: string[];
+  byFile: { file: string; sheets: { sheet: string; count: number }[] }[];
+} {
+  const errors: string[] = [];
+  const byFile: BulkKaynakResult["byFile"] = [];
+  const allRows: KaynakTechnicalDraft[] = [];
+
+  if (!fs.existsSync(dirAbsolute)) {
+    errors.push(`Klasör yok: ${dirAbsolute}`);
+    return { rows: [], errors, byFile: [] };
+  }
+
+  const files = fs
+    .readdirSync(dirAbsolute)
+    .filter((f) => /\.xlsx$/i.test(f) && !f.startsWith("~"))
+    .sort((a, b) => a.localeCompare(b, "tr"));
+
+  for (const file of files) {
+    const abs = path.join(dirAbsolute, file);
+    const fileSheets: { sheet: string; count: number }[] = [];
+    let buf: Buffer;
+    try {
+      buf = fs.readFileSync(abs);
+    } catch (e) {
+      errors.push(`${file}: okunamadı — ${e}`);
+      continue;
+    }
+
+    const wb = XLSX.read(buf, { type: "buffer", raw: false });
+    const matrices: import("./gramaj-matrix").GramajMatrixDraft[] = [];
+    let duzGramajPool: import("./duz-iki-iplik").DuzIkiIplikGramajDraft[] = [];
+
+    for (const sheetName of wb.SheetNames) {
+      const sh = wb.Sheets[sheetName];
+      if (!sh) continue;
+      const role = classifySheet(sheetName);
+      if (role !== "gramaj") continue;
+
+      const duz = parseDuzIkiIplikGramaj(sh);
+      if (duz.length > 0) duzGramajPool = duzGramajPool.concat(duz);
+
+      const mat = parseGramajMatrixSheet(sh, sheetName);
+      matrices.push(...mat);
+    }
+
+    for (const sheetName of wb.SheetNames) {
+      const sh = wb.Sheets[sheetName];
+      if (!sh) continue;
+      const role = classifySheet(sheetName);
+      const fabric = fabricForSheet(file, sheetName, ctx.fabricTypes);
+
+      try {
+        if (role === "enler") {
+          const enlerRaw = parseEnlerSheet(sh);
+          if (enlerRaw.length === 0) continue;
+
+          let enriched = enlerRaw;
+          const iki = isIkiIplikWorkbook(file);
+          const isDuzEn =
+            /DÜZ\s*İKİ\s*İPLİK/i.test(sheetName.normalize("NFC")) ||
+            /DÜZ\s*IKI\s*IPLIK/i.test(sheetName.toUpperCase());
+
+          if (iki && isDuzEn && duzGramajPool.length > 0) {
+            enriched = enrichEnlerDraftsWithGramajMedian(enlerRaw, duzGramajPool);
+          } else if (matrices.length > 0) {
+            enriched = enrichEnlerWithMatrix(enlerRaw, matrices);
+          }
+
+          const rows = enlerDraftsToTechnicalArgs(enriched, {
+            fabricTypeId: fabric.id,
+            fabricTypeName: fabric.name,
+            recipes: ctx.recipes,
+            sourceWorkbookName: file,
+            sourceSheetName: sheetName,
+            pickMachine: (d, pus, needle) =>
+              pickMachineForDuzIkiIplik(ctx.machines, d, pus, needle),
+          });
+          if (rows.length === 0) continue;
+          allRows.push(...rows);
+          fileSheets.push({ sheet: sheetName, count: rows.length });
+        } else if (role === "oran") {
+          const base = defaultMachineBase(ctx.machines, fabric);
+          const rows = parseOranlariSheet(
+            sh,
+            {
+              ...base,
+              fabricTypeId: fabric.id,
+              fabricTypeName: fabric.name,
+              sourceFileName: file,
+              sourceSheetName: sheetName,
+            },
+            file
+          );
+          if (rows.length === 0) continue;
+          allRows.push(...rows);
+          fileSheets.push({ sheet: sheetName, count: rows.length });
+        } else if (role === "uc_iplik") {
+          const base = defaultMachineBase(ctx.machines, fabric);
+          const rows = parseUcIplikSheet(sh, {
+            ...base,
+            fabricTypeId: fabric.id,
+            fabricTypeName: fabric.name,
+            sourceFileName: file,
+            sourceSheetName: sheetName,
+          });
+          if (rows.length === 0) continue;
+          allRows.push(...rows);
+          fileSheets.push({ sheet: sheetName, count: rows.length });
+        }
+      } catch (e) {
+        errors.push(`${file} / ${sheetName}: ${e instanceof Error ? e.message : e}`);
+      }
+    }
+
+    if (fileSheets.length > 0) byFile.push({ file, sheets: fileSheets });
+  }
+
+  return { rows: allRows, errors, byFile };
 }
 
 /**

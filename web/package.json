@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "analyze:excel-kaynak": "node scripts/analyze-excel-kaynak.mjs",
-    "seed:catalog": "npx tsx scripts/write-recipe-catalog.ts"
+    "seed:catalog": "npx tsx scripts/write-recipe-catalog.ts",
+    "seed:technical": "npx tsx scripts/build-technical-seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
