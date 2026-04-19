@@ -1,0 +1,21 @@
+# Next.js uygulaması (web/)
+web/node_modules/
+web/.next/
+web/out/
+web/coverage/
+web/.vercel
+web/*.tsbuildinfo
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/.pnpm-debug.log*
+
+# Ortam dosyaları — asla commit etmeyin
+web/.env
+web/.env.local
+web/.env.*.local
+!web/.env.local.example
+
+.DS_Store
+Thumbs.db
+*.log
