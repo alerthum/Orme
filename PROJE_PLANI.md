@@ -1,4 +1,4 @@
-# Yokuş Örme — Sipariş Planlama ve Teknik Karar Destek Sistemi
+# Yokuş Örme Yazılımı — Sipariş Planlama ve Teknik Karar Destek Sistemi
 
 **Bu dosya projenin tek plan / tarihçe kaynağıdır.** İlerleme, kararlar ve sıradaki işler burada kronolojik olarak tutulur. Uygulama kodu: `web/` klasörü.
 

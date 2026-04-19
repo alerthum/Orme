@@ -50,7 +50,7 @@ export default function LoginPage() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              DEMO V1 – Karar destek sistemi
+              Yokuş Örme Yazılımı · DEMO V1
             </div>
             <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
               Örme siparişinde

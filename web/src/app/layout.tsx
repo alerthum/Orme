@@ -16,8 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yokuş Örme – Sipariş Planlama",
-  description: "Yuvarlak örme teknik karar destek ve sipariş planlama",
+  title: "Yokuş Örme Yazılımı – Sipariş Planlama",
+  description:
+    "Yokuş Örme Yazılımı: yuvarlak örme teknik karar destek ve sipariş planlama",
 };
 
 export default function RootLayout({

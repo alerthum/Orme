@@ -1,4 +1,4 @@
-# Yokuş Örme – Sipariş Planlama ve Teknik Karar Destek (DEMO V1)
+# Yokuş Örme Yazılımı – Sipariş Planlama ve Teknik Karar Destek (DEMO V1)
 
 Proje planı ve tarihçe (tek kaynak): üst dizinde [../PROJE_PLANI.md](../PROJE_PLANI.md).
 

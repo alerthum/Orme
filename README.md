@@ -1,4 +1,4 @@
-# Yokuş Örme Reçete Sistemi
+# Yokuş Örme Yazılımı
 
 Next.js tabanlı **Örme Sipariş Planlama ve Teknik Karar Destek** uygulaması **`web/`** klasöründedir.
 

@@ -46,7 +46,7 @@ export function AppSidebar() {
           YÖ
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-900">Yokuş Örme</p>
+          <p className="text-sm font-semibold text-slate-900">Yokuş Örme Yazılımı</p>
           <p className="text-xs text-slate-500">Planlama &amp; KDS</p>
         </div>
       </div>

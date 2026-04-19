@@ -2,6 +2,7 @@
   "name": "yokus-orme-recete",
   "version": "0.1.0",
   "private": true,
+  "description": "Yokuş Örme Yazılımı – sipariş planlama ve teknik karar destek",
   "scripts": {
     "dev": "next dev -p 3007",
     "build": "next build",
