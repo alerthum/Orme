@@ -1,13 +1,19 @@
 import type { FabricRecipe } from "@/types";
 import seedCatalog from "@/data/seed/catalog.json";
 
+/** JSON’da tarihler ISO string; çalışma zamanında Date’e çevrilir */
+type CatalogRecipeRow = Omit<FabricRecipe, "createdAt" | "updatedAt"> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
 type CatalogFile = {
   version?: number;
-  fabricRecipes?: FabricRecipe[];
+  fabricRecipes?: CatalogRecipeRow[];
 };
 
 export function hydrateFabricRecipesFromCatalog(): FabricRecipe[] {
-  const data = seedCatalog as CatalogFile;
+  const data = seedCatalog as unknown as CatalogFile;
   const rows = data.fabricRecipes ?? [];
   return rows.map((r) => ({
     ...r,
